@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>SafeTopUp</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: 40px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+      color: #333;
+    }
+    label {
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    #admin-section {
+      display: none;
+      margin-top: 20px;
+    }
+    .commande {
+      background: #eee;
+      margin-bottom: 12px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    table {
+      width: 100%;
+      margin-top: 10px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    #param-btn {
+      background: #222;
+      margin-bottom: 20px;
+    }
+    #param-btn:hover {
+      background: #111;
+    }
+    #resultat2 {
+      font-weight: bold;
+      margin-top: -10px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <button id="param-btn" onclick="afficherAdmin()">Paramètres</button>
+
+  <h1>SafeTopUp</h1>
+
+  <h2>Tableau des prix</h2>
+  <table>
+    <tr><th>Quantité</th><th>Prix (HTG)</th></tr>
+    <tr><td>100💎</td><td>150</td></tr>
+    <tr><td>310💎</td><td>450</td></tr>
+    <tr><td>520💎</td><td>750</td></tr>
+    <tr><td>1060💎</td><td>1650</td></tr>
+    <tr><td>2180💎</td><td>3150</td></tr>
+    <tr><td>5600💎</td><td>8150</td></tr>
+  </table>
+
+  <hr>
+
+  <form id="commande-form">
+    <label>Nom du compte Free Fire :</label>
+    <input type="text" id="nom" required>
+
+    <label>ID du compte :</label>
+    <input type="text" id="id" required>
+
+    <label>Quantité de diamants :</label>
+    <input type="number" id="quantiteDiamant" oninput="calculerPrix('quantiteDiamant','resultat2')" required>
+    <p id="resultat2"></p>
+
+    <label>Photo du transfert :</label>
+    <input type="file" id="photo" accept="image/*" required>
+
+    <button type="submit">Envoyer Commande</button>
+  </form>
+
+  <p><strong>Payer à :</strong><br>
+  Natasha : +50933538731<br>
+  Nom : Ydonise Vincent</p>
+
+  <div id="admin-section">
+    <h2>Commandes</h2>
+    <div id="commandes-list"></div>
+  </div>
+</div>
+
+<script>
+  function calculerPrix(inputId, resultId) {
+    const q = parseInt(document.getElementById(inputId).value);
+    const prix = Math.ceil((q / 100) * 150);
+    document.getElementById(resultId).innerText = q ? `Total à payer : ${prix} HTG` : "";
+  }
+
+  document.getElementById("commande-form").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const nom = document.getElementById("nom").value.trim();
+    const id = document.getElementById("id").value.trim();
+    const quantite = document.getElementById("quantiteDiamant").value.trim();
+    const photo = document.getElementById("photo").files[0];
+
+    if (!nom || !id || !quantite || !photo) {
+      alert("Tous les champs sont obligatoires !");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function() {
+      const commandes = JSON.parse(localStorage.getItem("commandes") || "[]");
+      commandes.push({
+        nom, id, quantite,
+        photo: reader.result
+      });
+      localStorage.setItem("commandes", JSON.stringify(commandes));
+      alert("Commande envoyée !");
+      document.getElementById("commande-form").reset();
+      document.getElementById("resultat2").innerText = "";
+    };
+    reader.readAsDataURL(photo);
+  });
+
+  function afficherAdmin() {
+    const pass = prompt("Entrez le mot de passe administrateur :");
+    if (pass !== "safetopup123") return alert("Mot de passe incorrect !");
+    document.getElementById("admin-section").style.display = "block";
+    const commandes = JSON.parse(localStorage.getItem("commandes") || "[]");
+    const container = document.getElementById("commandes-list");
+    container.innerHTML = "";
+
+    if (commandes.length === 0) {
+      container.innerHTML = "<p>Aucune commande pour l’instant.</p>";
+      return;
+    }
+
+    commandes.forEach((cmd, i) => {
+      const el = document.createElement("div");
+      el.className = "commande";
+      el.innerHTML = `
+        <strong>Commande ${i + 1}</strong><br>
+        Nom : ${cmd.nom}<br>
+        ID : ${cmd.id}<br>
+        Quantité : ${cmd.quantite} diamants<br>
+        <img src="${cmd.photo}" width="100" alt="Preuve de paiement">
+      `;
+      container.appendChild(el);
+    });
+  }
+</script>
+
+</body>
+</html
